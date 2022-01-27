@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+		<meta charset="UTF-8">
+		<meta name="viewport"
+		      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+		<title>Document</title>
+		<style>
+        /*#mydiv {*/
+        /*    position: absolute;*/
+        /*    z-index: 9;*/
+        /*    background-color: #f1f1f1;*/
+        /*    border: 1px solid #d3d3d3;*/
+        /*    text-align: center;*/
+        /*}*/
+				
+        /*#mydivheader {*/
+        /*    padding: 10px;*/
+        /*    cursor: move;*/
+        /*    z-index: 10;*/
+        /*    background-color: #2196F3;*/
+        /*    color: #fff;*/
+        /*}*/
+        body {
+            font-family: "Tahoma", sans-serif;
+            font-size: 18px;
+            line-height: 25px;
+            color: #164a44;
+
+            background-color: #b2d9d0;
+        }
+
+        .tasks__title {
+            margin: 50px 0 20px 0;
+
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .tasks__list {
+            margin: 0;
+            padding: 0;
+
+            list-style: none;
+        }
+
+        .tasks__item {
+            transition: background-color 0.5s;
+            margin-bottom: 10px;
+            padding: 5px;
+
+            text-align: center;
+            border: 2px dashed #b2d9d0;
+            border-radius: 10px;
+            cursor: move;
+            background-color: #dff2ef;
+
+            transition: background-color 0.5s;
+        }
+
+        .tasks__item:last-child {
+            margin-bottom: 0;
+        }
+
+        .selected {
+            opacity: 0.6;
+        }
+		
+		</style>
+</head>
+<body>
+
+<section class="tasks">
+		<h1 class="tasks__title">To do list</h1>
+		
+		<ul class="tasks__list">
+				<li class="tasks__item">learn HTML</li>
+				<li class="tasks__item">learn CSS</li>
+				<li class="tasks__item">learn JavaScript</li>
+				<li class="tasks__item">learn PHP</li>
+				<li class="tasks__item">stay alive</li>
+		</ul>
+</section>
+
+<script>
+    const tasksListElement = document.querySelector(`.tasks__list`);
+    const taskElements = tasksListElement.querySelectorAll(`.tasks__item`);
+
+    // Перебираем все элементы списка и присваиваем нужное значение
+    for (const task of taskElements) {
+        task.draggable = true;
+    }
+
+    tasksListElement.addEventListener(`dragstart`, (evt) => {
+        evt.target.classList.add(`selected`);
+    })
+
+    tasksListElement.addEventListener(`dragend`, (evt) => {
+        evt.target.classList.remove(`selected`);
+    });
+
+    tasksListElement.addEventListener(`dragover`, (evt) => {
+        // Разрешаем сбрасывать элементы в эту область
+        evt.preventDefault();
+
+        // Находим перемещаемый элемент
+        const activeElement = tasksListElement.querySelector(`.selected`);
+        // Находим элемент, над которым в данный момент находится курсор
+        const currentElement = evt.target;
+        // Проверяем, что событие сработало:
+        // 1. не на том элементе, который мы перемещаем,
+        // 2. именно на элементе списка
+        const isMoveable = activeElement !== currentElement &&
+            currentElement.classList.contains(`tasks__item`);
+
+        // Если нет, прерываем выполнение функции
+        if (!isMoveable) {
+            return;
+        }
+
+        // Находим элемент, перед которым будем вставлять
+        const nextElement = (currentElement === activeElement.nextElementSibling) ?
+            currentElement.nextElementSibling :
+            currentElement;
+
+        // Вставляем activeElement перед nextElement
+        tasksListElement.insertBefore(activeElement, nextElement);
+    });
+
+    const getNextElement = (cursorPosition, currentElement) => {
+        // Получаем объект с размерами и координатами
+        const currentElementCoord = currentElement.getBoundingClientRect();
+        // Находим вертикальную координату центра текущего элемента
+        const currentElementCenter = currentElementCoord.y + currentElementCoord.height / 2;
+
+        // Если курсор выше центра элемента, возвращаем текущий элемент
+        // В ином случае — следующий DOM-элемент
+        const nextElement = (cursorPosition < currentElementCenter) ?
+            currentElement :
+            currentElement.nextElementSibling;
+
+        return nextElement;
+    };
+    tasksListElement.addEventListener(`dragover`, (evt) => {
+        evt.preventDefault();
+
+        const activeElement = tasksListElement.querySelector(`.selected`);
+        const currentElement = evt.target;
+        const isMoveable = activeElement !== currentElement &&
+            currentElement.classList.contains(`tasks__item`);
+
+        if (!isMoveable) {
+            return;
+        }
+
+        // evt.clientY — вертикальная координата курсора в момент,
+        // когда сработало событие
+        const nextElement = getNextElement(evt.clientY, currentElement);
+
+        // Проверяем, нужно ли менять элементы местами
+        if (
+            nextElement &&
+            activeElement === nextElement.previousElementSibling ||
+            activeElement === nextElement
+        ) {
+            // Если нет, выходим из функции, чтобы избежать лишних изменений в DOM
+            return;
+        }
+
+        tasksListElement.insertBefore(activeElement, nextElement);
+    });
+</script>
+
+<!--&lt;!&ndash;Draggable DIV:&ndash;&gt;-->
+<!--<div id="mydiv">-->
+<!--		&lt;!&ndash;Include a header DIV with the same name as the draggable DIV, followed by "header":&ndash;&gt;-->
+<!--		<div id="mydivheader">Click here to move</div>-->
+<!--		<p>Move</p>-->
+<!--		<p>this</p>-->
+<!--		<p>DIV</p>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    //Make the DIV element draggagle:-->
+<!--    dragElement(document.getElementById(("mydiv")));-->
+
+<!--    function dragElement(elmnt) {-->
+<!--        var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;-->
+<!--        if (document.getElementById(elmnt.id + "header")) {-->
+<!--            /* if present, the header is where you move the DIV from:*/-->
+<!--            document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;-->
+<!--        } else {-->
+<!--            /* otherwise, move the DIV from anywhere inside the DIV:*/-->
+<!--            elmnt.onmousedown = dragMouseDown;-->
+<!--        }-->
+
+<!--        function dragMouseDown(e) {-->
+<!--            e = e || window.event;-->
+<!--            // get the mouse cursor position at startup:-->
+<!--            pos3 = e.clientX;-->
+<!--            pos4 = e.clientY;-->
+<!--            document.onmouseup = closeDragElement;-->
+<!--            // call a function whenever the cursor moves:-->
+<!--            document.onmousemove = elementDrag;-->
+<!--        }-->
+
+<!--        function elementDrag(e) {-->
+<!--            e = e || window.event;-->
+<!--            // calculate the new cursor position:-->
+<!--            pos1 = pos3 - e.clientX;-->
+<!--            pos2 = pos4 - e.clientY;-->
+<!--            pos3 = e.clientX;-->
+<!--            pos4 = e.clientY;-->
+<!--            // set the element's new position:-->
+<!--            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";-->
+<!--            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";-->
+<!--        }-->
+
+<!--        function closeDragElement() {-->
+<!--            /* stop moving when mouse button is released:*/-->
+<!--            document.onmouseup = null;-->
+<!--            document.onmousemove = null;-->
+<!--        }-->
+<!--    }-->
+<!--</script>-->
+
+<!--<script>-->
+<!--e target практика-->
+<!--    // Создадим список-->
+<!--    var ul = document.createElement('ul');-->
+<!--    document.body.appendChild(ul);-->
+
+<!--    var li1 = document.createElement('li');-->
+<!--        li1.innerText = 'Текст1'-->
+<!--    var li2 = document.createElement('li');-->
+<!--        li2.innerText = 'Текст2'-->
+
+<!--    ul.appendChild(li1);-->
+<!--    ul.appendChild(li2);-->
+
+<!--    function hide(e){-->
+<!--        // e.target ссылается на кликнутый <li> элемент-->
+<!--        // Он отличается от e.currentTarget который будет ссылаться на родительский <ul> в этом контексте-->
+<!--        e.target.style.visibility = 'hidden';-->
+<!--    }-->
+
+<!--    // Назначим обработчик к списку-->
+<!--    // Он будет вызван когда кликнут на любой <li>-->
+<!--    ul.addEventListener('click', hide, false);-->
+
+
+<!--    -->
+
+<!--</script>-->
+
+
+<!--<p id="hide"> Нажми на меня! </p>-->
+
+
+<!--<script>-->
+<!--		let hideText = document.getElementById('hide')-->
+<!--		    hideText.addEventListener('click', hide, false);-->
+<!--      -->
+<!--    function hide(e) {-->
+<!--        let target = e.target;-->
+<!--        target.style.visibility = 'hidden';-->
+<!--    }-->
+<!--</script>-->
+
+</body>
+</html>
